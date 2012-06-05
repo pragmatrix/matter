@@ -44,7 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <Compile Include="TokenizerTest.fs" />
+    <Compile Include="TokenizerTests.fs" />
     <Compile Include="ParserTests.fs" />
   </ItemGroup>
   <ItemGroup>
