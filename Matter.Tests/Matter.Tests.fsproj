@@ -46,6 +46,7 @@
     <None Include="packages.config" />
     <Compile Include="TokenizerTests.fs" />
     <Compile Include="ParserTests.fs" />
+    <Compile Include="EvaluatorTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Matter\Matter.fsproj">
