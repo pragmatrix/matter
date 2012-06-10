@@ -20,12 +20,12 @@ type EvaluatorTests() =
     
     [<Test>]
     member this.testFunction() =
-        let r = evaluateString "(define (first a b) a) (first 10 11)"
+        let r = evaluateString "(define first (a b) a) (first 10 11)"
         Assert.That(r, Is.EqualTo(Number 10))
 
     [<Test>]
     member this.testFunction2() =
-        let r = evaluateString "(define (second a b) b) (second 10 11)"
+        let r = evaluateString "(define second (a b) b) (second 10 11)"
         Assert.That(r, Is.EqualTo(Number 11))
 
 

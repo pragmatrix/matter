@@ -48,7 +48,7 @@ and evalDefine parms (env:Env) =
     | [Symbol symbol; body] ->
         ok, env.Add(symbol, fun _ -> body)
 
-    | [List (Symbol symbol::parms); body] ->
+    | [Symbol symbol; List parms; body] ->
         let f args = 
             let localEnv = bind parms args env
             eval body localEnv |> fst
