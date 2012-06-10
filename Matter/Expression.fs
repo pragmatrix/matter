@@ -35,7 +35,7 @@ let rec print exp =
     | Symbol s -> s
     | List lst ->
         let all = List.map print lst
-        let content = List.fold (fun str next -> str + " " + next) "" all
+        let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
     | Func {Name = name} -> "call " + name
 
