@@ -50,4 +50,9 @@ type EvaluatorTests() =
     member this.testIfNoElse2() =
         let r = evaluateString "(def a false) (if a 11)"
         test r (List [])
+
+    [<Test>]
+    member this.testMacroSimple() =
+        let r = evaluateString "(defmacro a (if b 1 0)) (def b true) (a)"
+        test r (Number 1)
         
