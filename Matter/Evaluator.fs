@@ -37,7 +37,8 @@ let rec eval expression (env:Env) =
     | List (Symbol s::parms) -> 
         match s with
         | "do" -> evalDo parms env
-        | "define" -> evalDefine parms env
+        | "def" -> evalDef parms env
+        | "defmacro" -> evalDefmacro parms env
         | "if" -> evalIf parms env
         | _ -> env.[s].Eval parms, env
 
@@ -46,7 +47,7 @@ let rec eval expression (env:Env) =
 and evalDo expressions env =
     List.fold (fun (_,env) exp -> eval exp env) (List [], env) expressions
     
-and evalDefine parms (env:Env) =
+and evalDef parms (env:Env) =
     match parms with
 
     | [Symbol symbol; body] ->
@@ -59,7 +60,16 @@ and evalDefine parms (env:Env) =
             eval body localEnv |> fst
         ok, env.Add(symbol, makeFunction symbol f)
 
-    | _ -> failwith "define: invalid arguments"
+    | _ -> failwith "def: invalid arguments"
+
+and evalDefmacro parms (env:Env) =
+    match parms with
+    | [Symbol symbol; List parms; body] ->
+        let f args = 
+            let localEnv = bind parms args env
+            eval body localEnv |> fst
+        ok, env.Add(symbol, makeMacro symbol f)
+    | _ -> failwith "defmacro: invalid arguments"
 
 and evalIf parms (env:Env) =
     match parms with
