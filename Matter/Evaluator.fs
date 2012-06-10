@@ -31,7 +31,7 @@ let rec eval expression (env:Env) =
     // variable
     | Symbol s -> env.[s] [], env
 
-    // application
+    // special forms
     | List (Symbol s::parms) -> 
         match s with
         | "begin" -> evalBegin parms env
