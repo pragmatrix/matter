@@ -36,14 +36,14 @@ let rec eval expression (env:Env) =
     // special forms and application
     | List (Symbol s::parms) -> 
         match s with
-        | "begin" -> evalBegin parms env
+        | "do" -> evalDo parms env
         | "define" -> evalDefine parms env
         | "if" -> evalIf parms env
         | _ -> env.[s].Eval parms, env
 
     | _ -> failwith "failed to evaluate expression"
 
-and evalBegin expressions env =
+and evalDo expressions env =
     List.fold (fun (_,env) exp -> eval exp env) (List [], env) expressions
     
 and evalDefine parms (env:Env) =
@@ -82,5 +82,5 @@ and evalValue exp env = eval exp env |> fst
 
 let evaluateString str =
     let expressions = parseString str
-    let program = (List (Symbol "begin" :: expressions))
+    let program = (List (Symbol "do" :: expressions))
     eval program Map.empty |> fst
