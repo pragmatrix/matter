@@ -13,5 +13,22 @@ type Expression =
     | Symbol of string
 
     | List of Expression list
-    | Func of (Expression list -> Expression)
+    | Func of Function
+
+and Function = { Name: string; Eval: Expression list -> Expression; Macro: bool }
+
+
+let rec print exp =
+    match exp with
+    | Number n -> n.ToString()
+    | String str -> "\"" + str + "\""
+    | Boolean b -> if b then "true" else "false"
+    | Keyword kw -> ":" + kw
+    | Symbol s -> s
+    | List lst ->
+        let all = List.map print lst
+        let content = List.fold (fun str next -> str + " " + next) "" all
+        "("+content+")"
+    | Func {Name = name} -> "call " + name
+
 

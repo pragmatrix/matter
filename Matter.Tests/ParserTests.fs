@@ -2,47 +2,50 @@
 
 open NUnit.Framework
 open Parser
-
+open Expression
 
 [<TestFixture>]
 type ParserTests() =
 
+    let test l r = 
+        Assert.That(print (List l), Is.EqualTo(print (List r)))
+
     [<Test>]
     member this.testEmpty() =
         let res = parseString ""
-        Assert.That(res, Is.EqualTo([]))
+        test res []
 
     [<Test>]
     member this.testEmptyList() =
         let res = parseString "()"
-        Assert.That(res, Is.EqualTo([List []]))
+        test res [List []]
 
     [<Test>]
     member this.testAtom() =
         let res = parseString "10"
-        Assert.That(res, Is.EqualTo([Number 10]))
+        test res [Number 10]
 
     [<Test>]
     member this.testAtomInList() =
         let res = parseString "(10)"
-        Assert.That(res, Is.EqualTo([List [Number 10]]))
+        test res [List [Number 10]]
 
     [<Test>]
     member this.testAtomsInList() =
         let res = parseString "(10 11)"
-        Assert.That(res, Is.EqualTo([List [Number 10; Number 11]]))
+        test res [List [Number 10; Number 11]]
 
     [<Test>]
     member this.testListInList() =
         let res = parseString "(())"
-        Assert.That(res, Is.EqualTo([List [List []]]))
+        test res [List [List []]]
 
     [<Test>]
     member this.testAtomSequence() =
         let res = parseString "10 11"
-        Assert.That(res, Is.EqualTo([Number 10;Number 11]))
+        test res [Number 10; Number 11]
 
     [<Test>]
     member this.testListSequence() =
         let res = parseString "()()"
-        Assert.That(res, Is.EqualTo([List[];List[]]))
+        test res [List[];List[]]
