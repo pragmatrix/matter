@@ -3,7 +3,7 @@
 open Expression
 open Parser
 
-type Env = Map<string, Expression list ->Expression >
+type Env = Map<string, Function >
 
 let ok = Keyword "ok"
 
@@ -20,16 +20,18 @@ let rec bind parms expressions (env:Env) =
     match parms, expressions with
     | [],[] -> env
     | Symbol sym:: parm_r, value :: value_r ->
-        let newEnv = env.Add(sym, fun _ -> value)
+        let newEnv = env.Add(sym, makeVar sym value)
         bind parm_r value_r newEnv
     | _ -> failwith "bind: failed to bind expressions to arguments"
+
+
 
 let rec eval expression (env:Env) =
     match expression with
     | IsAtomic exp -> exp, env
 
     // variable
-    | Symbol s -> env.[s] [], env
+    | Symbol s -> env.[s].Eval [], env
 
     // special forms and application
     | List (Symbol s::parms) -> 
@@ -37,7 +39,7 @@ let rec eval expression (env:Env) =
         | "begin" -> evalBegin parms env
         | "define" -> evalDefine parms env
         | "if" -> evalIf parms env
-        | _ -> env.[s] parms, env
+        | _ -> env.[s].Eval parms, env
 
     | _ -> failwith "failed to evaluate expression"
 
@@ -48,13 +50,14 @@ and evalDefine parms (env:Env) =
     match parms with
 
     | [Symbol symbol; body] ->
-        ok, env.Add(symbol, fun _ -> body)
+        let f = makeVar symbol body
+        ok, env.Add(symbol, f)
 
     | [Symbol symbol; List parms; body] ->
         let f args = 
             let localEnv = bind parms args env
             eval body localEnv |> fst
-        ok, env.Add(symbol, f)
+        ok, env.Add(symbol, makeFunction symbol f)
 
     | _ -> failwith "define: invalid arguments"
 

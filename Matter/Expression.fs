@@ -17,6 +17,14 @@ type Expression =
 
 and Function = { Name: string; Eval: Expression list -> Expression; Macro: bool }
 
+let makeFunction name eval =
+    { Name = name; Eval = eval; Macro = false }
+
+let makeVar name value =
+    makeFunction name (fun _ -> value)
+
+let makeMacro name eval =
+    { Name = name; Eval = eval; Macro = true }
 
 let rec print exp =
     match exp with
