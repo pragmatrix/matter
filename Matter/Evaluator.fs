@@ -1,5 +1,6 @@
 ﻿module Evaluator
 
+open Expression
 open Parser
 
 type Env = Map<string, Expression list ->Expression >
@@ -35,6 +36,7 @@ let rec eval expression (env:Env) =
         match s with
         | "begin" -> evalBegin parms env
         | "define" -> evalDefine parms env
+        | "if" -> evalIf parms env
         | _ -> env.[s] parms, env
 
     | _ -> failwith "failed to evaluate expression"
@@ -55,6 +57,25 @@ and evalDefine parms (env:Env) =
         ok, env.Add(symbol, f)
 
     | _ -> failwith "define: invalid arguments"
+
+and evalIf parms (env:Env) =
+    match parms with
+    | [test; ifTrue; ifFalse] ->
+        let value = evalValue test env
+        match value with
+        | Boolean b -> eval (if b then ifTrue else ifFalse) env
+        | _ -> failwith "if: expect boolean expression"
+
+    | [test; ifTrue ] ->
+        let value = evalValue test env
+        match value with
+        | Boolean true -> eval ifTrue env
+        | Boolean false -> List [], env
+        |_ -> failwith "if: expect boolean expression"
+
+    | _ -> failwith "if: (if exp then else?)"
+
+and evalValue exp env = eval exp env |> fst
 
 let evaluateString str =
     let expressions = parseString str
