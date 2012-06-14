@@ -2,6 +2,7 @@
 
 open Expression
 open Parser
+open Runtime
 
 type Env = Map<string, Expression >
 
@@ -52,7 +53,7 @@ let rec eval expression (env:Env) =
             | Func (f) ->
                 let args = evalArgs args env
                 evalFun f args env
-            | _ -> failwith "expect function, but seen %s" (print finalOperator)
+            | _ -> failwith (sprintf "expect function, but seen %s" (print finalOperator))
 
     | _ -> failwith "failed to evaluate expression"
 
@@ -144,10 +145,11 @@ and evalValue exp env =
 
 and evalDot args env =
     match args with
-    | [Symbol "list"] ->
-        makeFunction "list" List, env
-    | [Symbol n] -> failwith (sprintf ". %s not implemented" n)
-    | _ -> failwith ". expects a symbol as its only argument"
+    | [Symbol name] ->
+        match Map.tryFind name functionMap with
+        | Some f -> Func f, env
+        | None -> failwith (sprintf ". %s not implemented" name)
+    | _ -> failwith ". expects one symbol"
 
 //
 

@@ -9,5 +9,5 @@ let essentialFunctions = [
     ]
 
 let functionMap = 
-    let pairs = List.map (fun (f:Function) -> f.Name, f.F) essentialFunctions
+    let pairs = List.map (fun (f:Function) -> f.Name, f) essentialFunctions
     Map.ofList pairs

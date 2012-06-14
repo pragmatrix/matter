@@ -6,7 +6,7 @@ open Interpreter
 open Expression
 
 [<TestFixture>]
-type RuntimeTests() =
+type InterpreterTests() =
 
     [<Test>]
     member this.testMatter() =
