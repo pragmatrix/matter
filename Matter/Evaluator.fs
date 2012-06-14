@@ -7,7 +7,7 @@ type Env = Map<string, Expression >
 
 let ok = Keyword "ok"
 
-let (|IsAtomic|_|) expression =
+let (|IsSelfEval|_|) expression =
     let yes = Some expression
     match expression with
     | Number _ -> yes
@@ -18,7 +18,7 @@ let (|IsAtomic|_|) expression =
 
 let rec eval expression (env:Env) =
     match expression with
-    | IsAtomic exp -> exp, env
+    | IsSelfEval exp -> exp, env
 
     // variable (evaluates to the "value" of the symbol)
     | Symbol s ->
