@@ -13,18 +13,22 @@ type Expression =
     | Symbol of string
 
     | List of Expression list
+
     | Func of Function
+    | Var of Variable
 
-and Function = { Name: string; Eval: Expression list -> Expression; Macro: bool }
 
-let makeFunction name eval =
-    { Name = name; Eval = eval; Macro = false }
+and Function = { Name: string; Parms: Expression list; Body: Expression; Macro: bool }
+and Variable = { Name: string; Value: Expression }
+
+let makeFunction name parms body =
+    Func { Name = name; Parms = parms; Body = body; Macro = false }
 
 let makeVar name value =
-    makeFunction name (fun _ -> value)
+    Var { Name = name; Value = value }
 
-let makeMacro name eval =
-    { Name = name; Eval = eval; Macro = true }
+let makeMacro name parms body =
+    Func { Name = name; Parms = parms; Body = body; Macro = true }
 
 let rec print exp =
     match exp with
@@ -37,6 +41,5 @@ let rec print exp =
         let all = List.map print lst
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
-    | Func {Name = name} -> "call " + name
-
-
+    | Func {Name = name} -> "fun " + name
+    | Var { Name = name} -> "var " + name

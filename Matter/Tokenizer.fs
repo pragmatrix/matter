@@ -35,7 +35,9 @@ let skip f input =
 
 let isAlpha c = (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 let isDigit c = (c >= '0' && c <= '9')
-let isSymbolSpecial (c:char) = "!?_+-*/".IndexOf(c) <> -1
+
+// right now we support '.' in symbols .. that may change later
+let isSymbolSpecial (c:char) = "!?_+-*/.".IndexOf(c) <> -1
 
 let inline (>>||) a b = fun c -> (a c) || (b c)
 

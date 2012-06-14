@@ -38,6 +38,8 @@
     <Compile Include="Expression.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Evaluator.fs" />
+    <Compile Include="Runtime.fs" />
+    <EmbeddedResource Include="matter.mt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

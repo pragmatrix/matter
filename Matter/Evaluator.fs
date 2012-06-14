@@ -3,7 +3,7 @@
 open Expression
 open Parser
 
-type Env = Map<string, Function >
+type Env = Map<string, Expression >
 
 let ok = Keyword "ok"
 
@@ -16,48 +16,61 @@ let (|IsAtomic|_|) expression =
     | Keyword _ -> yes
     | _ -> None
 
-let rec bind parms expressions (env:Env) =
-    match parms, expressions with
-    | [],[] -> env
-    | Symbol sym:: parm_r, value :: value_r ->
-        let newEnv = env.Add(sym, makeVar sym value)
-        bind parm_r value_r newEnv
-    | _ -> failwith "bind: failed to bind expressions to arguments"
-
-
-
 let rec eval expression (env:Env) =
     match expression with
     | IsAtomic exp -> exp, env
 
-    // variable
-    | Symbol s -> 
-        let f = env.[s]
-        evalFun f [] env
+    // variable (evaluates to the "value" of the symbol)
+    | Symbol s ->
+        let exp = env.TryFind s
+        match exp with
+        | None -> failwith (sprintf "undefined symbol '%s'" s)
+        | Some exp ->
+            match exp with
+            // a value of a function with no arguments is its evaluated result, this hack is probably 
+            // why clojure separates def from defn.
+            | Func { Parms = []; Body=body; Macro=false } -> eval body env
+            | Var { Value=value } -> value, env
+            // todo: do macros have a value?
+            | _ -> exp, env
+
 
     // special forms and application
-    | List (Symbol s::parms) -> 
-        match s with
-        | "do" -> evalDo parms env
-        | "def" -> evalDef parms env
-        | "defmacro" -> evalDefmacro parms env
-        | "if" -> evalIf parms env
+    | List (operator::args) -> 
+        match operator with
+        | Symbol "do" -> evalDo args env
+        | Symbol "def" -> evalDef args env
+        | Symbol "defmacro" -> evalDefmacro args env
+        | Symbol "if" -> evalIf args env
+        | Symbol "quote" -> evalQuote args env
+        | Symbol "." -> evalDot args env
         | _ -> 
-            let f = env.[s]
-            evalFun f parms env
+            let finalOperator = eval operator env |> fst
+            match finalOperator with
+            | Func ({Macro=true} as f) -> 
+                // a macro is not allowed to pollute our current environment, but
+                // it can have an effect on it by returning defs or other defmacros.
+                let macroExp, envMacro = evalMacro f args env
+                eval macroExp env
+            | _ -> apply finalOperator (evalArgs args env) env
 
     | _ -> failwith "failed to evaluate expression"
+
+and apply operator args env =
+    match operator with
+    | Func f -> evalFun f args env
+    | _ -> failwith (sprintf "apply: undefined %s" (print operator))
+
+and evalArgs args env =
+    List.map (fun exp -> eval exp env |> fst) args
 
 and evalDo expressions env =
     List.fold (fun (_,env) exp -> eval exp env) (List [], env) expressions
     
 and evalDef parms (env:Env) =
     
-    let def symbol parms body =
-        let f args = 
-            let localEnv = bind parms args env
-            eval body localEnv |> fst
-        ok, env.Add(symbol, makeFunction symbol f)
+    let def name parms body =
+        ok, env.Add(name, makeFunction name parms body)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -68,10 +81,7 @@ and evalDef parms (env:Env) =
 and evalDefmacro parms (env:Env) =
 
     let def symbol parms body = 
-        let f args = 
-            let localEnv = bind parms args env
-            eval body localEnv |> fst
-        ok, env.Add(symbol, makeMacro symbol f)
+        ok, env.Add(symbol, makeMacro symbol parms body)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -96,15 +106,40 @@ and evalIf parms (env:Env) =
 
     | _ -> failwith "if: (if exp then else?)"
 
+and evalQuote parms env =
+    match parms with
+    | p :: [] -> p,env
+    | _ -> failwith "quote: supports only one parameter"
+
 and evalFun f args (env:Env) =
-    if (not f.Macro) then
-        (f.Eval args), env
-    else
-        eval (f.Eval args) env
+    let localEnv = bind f.Parms args env
+    eval f.Body localEnv
+    
+and evalMacro f args (env:Env) =
+    let localEnv = bind f.Parms args env
+    eval f.Body localEnv
 
-and evalValue exp env = eval exp env |> fst
+and bind parms args (env:Env) =
+        match parms, args with
+        | [],[] -> env
+        | Symbol sym:: parm_r, value :: value_r ->
+            let newEnv = env.Add(sym, makeVar sym value)
+            bind parm_r value_r newEnv
+        | _ -> failwith "bind: failed to bind expressions to arguments"
 
-let evaluateString str =
+and evalValue exp env = 
+    eval exp env |> fst
+
+and evalDot args env =
+    failwith "not implemented"
+
+let doify expressions = 
+    (List (Symbol "do" :: expressions))
+
+let evalExpressions expressions = 
+    eval (doify expressions) Map.empty
+
+let evalString str = 
     let expressions = parseString str
-    let program = (List (Symbol "do" :: expressions))
-    eval program Map.empty |> fst
+    evalExpressions expressions
+
