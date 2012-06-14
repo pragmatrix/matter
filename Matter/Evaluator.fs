@@ -29,13 +29,13 @@ let rec eval expression (env:Env) =
             match exp with
             // a value of a function with no arguments is its evaluated result, this hack is probably 
             // why clojure separates def from defn.
-            | Func { Parms = []; Body=body; Macro=false } -> eval body env
+            | Func { Parms = []; Body=body } -> eval body env
             | Var { Value=value } -> value, env
             // todo: do macros have a value?
             | _ -> exp, env
 
 
-    // special forms and application
+    // special forms and function application
     | List (operator::args) -> 
         match operator with
         | Symbol "do" -> evalDo args env
@@ -47,12 +47,15 @@ let rec eval expression (env:Env) =
         | _ -> 
             let finalOperator = eval operator env |> fst
             match finalOperator with
-            | Func ({Macro=true} as f) -> 
+            | Macro (m) -> 
                 // a macro is not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
-                let macroExp, envMacro = evalMacro f args env
+                let macroExp, envMacro = evalMacro m args env
                 eval macroExp env
-            | _ -> apply finalOperator (evalArgs args env) env
+            | Func (f) ->
+                let args = evalArgs args env
+                evalFun f args env
+            | _ -> failwith "expect function, but seen %s" (print finalOperator)
 
     | _ -> failwith "failed to evaluate expression"
 
@@ -115,9 +118,9 @@ and evalFun f args (env:Env) =
     let localEnv = bind f.Parms args env
     eval f.Body localEnv
     
-and evalMacro f args (env:Env) =
-    let localEnv = bind f.Parms args env
-    eval f.Body localEnv
+and evalMacro m args (env:Env) =
+    let localEnv = bind m.Parms args env
+    eval m.Body localEnv
 
 and bind parms args (env:Env) =
         match parms, args with

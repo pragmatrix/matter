@@ -16,19 +16,24 @@ type Expression =
 
     | Func of Function
     | Var of Variable
+    | Macro of Macro
 
 
-and Function = { Name: string; Parms: Expression list; Body: Expression; Macro: bool }
-and Variable = { Name: string; Value: Expression }
+and Function = 
+    { Name: string; Parms: Expression list; Body: Expression }
+and Macro =    
+    { Name: string; Parms: Expression list; Body: Expression }
+and Variable = 
+    { Name: string; Value: Expression }
 
 let makeFunction name parms body =
-    Func { Name = name; Parms = parms; Body = body; Macro = false }
+    Func { Name = name; Parms = parms; Body = body }
 
 let makeVar name value =
     Var { Name = name; Value = value }
 
 let makeMacro name parms body =
-    Func { Name = name; Parms = parms; Body = body; Macro = true }
+    Macro { Name = name; Parms = parms; Body = body }
 
 let rec print exp =
     match exp with
@@ -41,5 +46,7 @@ let rec print exp =
         let all = List.map print lst
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
-    | Func {Name = name} -> "fun " + name
-    | Var { Name = name} -> "var " + name
+    | Func { Name = name } -> "fun " + name
+    | Var { Name = name } -> "var " + name
+    | Macro { Name = name } -> "macro " + name
+
