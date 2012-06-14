@@ -1,23 +1,13 @@
 ﻿module Runtime
 
 open Expression
-open Parser
-open Evaluator
-open System.IO
 
-open System.Reflection
+let essentialFunctions = [
+    { Name = "list"; F = List }
+    { Name = "head"; F = fun (e::_) -> e }
+    { Name = "tail"; F = fun (_::t) -> List t }
+    ]
 
-let loadMatter() =
-    let assembly = Assembly.GetExecutingAssembly()
-    use stream = assembly.GetManifestResourceStream("matter.mt")
-    use reader = new StreamReader(stream)
-    let content = reader.ReadToEnd()
-    doify (parseString content)
-
-let staticMatter = loadMatter()
-
-let runProgram str =
-    let prelude = staticMatter
-    let expressions = parseString str
-    let program = doify (prelude :: expressions)
-    eval program Map.empty |> fst
+let functionMap = 
+    let pairs = List.map (fun (f:Function) -> f.Name, f.F) essentialFunctions
+    Map.ofList pairs

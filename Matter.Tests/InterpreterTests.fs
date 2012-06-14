@@ -1,8 +1,8 @@
-﻿module RuntimeTests
+﻿module InterpreterTests
 
 open NUnit.Framework
 
-open Runtime
+open Interpreter
 open Expression
 
 [<TestFixture>]

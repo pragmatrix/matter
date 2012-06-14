@@ -37,8 +37,9 @@
     <Compile Include="Tokenizer.fs" />
     <Compile Include="Expression.fs" />
     <Compile Include="Parser.fs" />
-    <Compile Include="Evaluator.fs" />
     <Compile Include="Runtime.fs" />
+    <Compile Include="Evaluator.fs" />
+    <Compile Include="Interpreter.fs" />
     <EmbeddedResource Include="matter.mt" />
   </ItemGroup>
   <ItemGroup>

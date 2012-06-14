@@ -27,9 +27,6 @@ let rec eval expression (env:Env) =
         | None -> failwith (sprintf "undefined symbol '%s'" s)
         | Some exp ->
             match exp with
-            // a value of a function with no arguments is its evaluated result, this hack is probably 
-            // why clojure separates def from defn.
-            | Func { IsValue=true; F=f } -> f [], env
             | Var { Value=value } -> value, env
             // todo: do macros have a value?
             | _ -> exp, env
@@ -86,7 +83,15 @@ and evalDef parms (env:Env) =
         let f args =
             let localEnv = bind parms args env
             eval body localEnv |> fst
-        ok, env.Add(name, makeFunction name isValue f)
+
+        let exp = 
+            if isValue then 
+                makeVar name (f []) 
+            else 
+                makeFunction name f
+
+        ok, env.Add(name, exp)
+
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -125,7 +130,7 @@ and evalIf parms (env:Env) =
 and evalQuote parms env =
     match parms with
     | p :: [] -> p,env
-    | _ -> failwith "quote: supports only one parameter"
+    | _ -> failwith "quote expects only one parameter"
 
 and evalFun f args (env:Env) =
     (f.F args), env
@@ -140,7 +145,7 @@ and evalValue exp env =
 and evalDot args env =
     match args with
     | [Symbol "list"] ->
-        makeFunction "list" false List, env
+        makeFunction "list" List, env
     | [Symbol n] -> failwith (sprintf ". %s not implemented" n)
     | _ -> failwith ". expects a symbol as its only argument"
 

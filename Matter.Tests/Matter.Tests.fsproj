@@ -47,7 +47,7 @@
     <Compile Include="TokenizerTests.fs" />
     <Compile Include="ParserTests.fs" />
     <Compile Include="EvaluatorTests.fs" />
-    <Compile Include="RuntimeTests.fs" />
+    <Compile Include="InterpreterTests.fs" />
     <Compile Include="MacroTests.fs" />
   </ItemGroup>
   <ItemGroup>
