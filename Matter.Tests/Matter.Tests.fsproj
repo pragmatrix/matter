@@ -47,6 +47,8 @@
     <Compile Include="TokenizerTests.fs" />
     <Compile Include="ParserTests.fs" />
     <Compile Include="EvaluatorTests.fs" />
+    <Compile Include="RuntimeTests.fs" />
+    <Compile Include="MacroTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Matter\Matter.fsproj">

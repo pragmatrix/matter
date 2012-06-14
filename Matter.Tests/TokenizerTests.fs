@@ -60,3 +60,4 @@ type TokenizerTests() =
         let res = tokenizeString "hoi ho"
         let expected = [Symbol "hoi"; Symbol "ho"]
         Assert.That(res, Is.EqualTo(expected))
+
