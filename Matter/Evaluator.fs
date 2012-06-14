@@ -29,7 +29,7 @@ let rec eval expression (env:Env) =
             match exp with
             // a value of a function with no arguments is its evaluated result, this hack is probably 
             // why clojure separates def from defn.
-            | Func { Parms = []; Body=body } -> eval body env
+            | Func { IsValue=true; F=f } -> f [], env
             | Var { Value=value } -> value, env
             // todo: do macros have a value?
             | _ -> exp, env
@@ -70,10 +70,23 @@ and evalArgs args env =
 and evalDo expressions env =
     List.fold (fun (_,env) exp -> eval exp env) (List [], env) expressions
     
+and bind parms args (env:Env) =
+        match parms, args with
+        | [],[] -> env
+        | Symbol sym:: parm_r, value :: value_r ->
+            let newEnv = env.Add(sym, makeVar sym value)
+            bind parm_r value_r newEnv
+        | _ -> failwith "bind: failed to bind expressions to arguments"
+
 and evalDef parms (env:Env) =
     
     let def name parms body =
-        ok, env.Add(name, makeFunction name parms body)
+        let isValue = List.isEmpty parms
+        // env of a function is lexically scoped!
+        let f args =
+            let localEnv = bind parms args env
+            eval body localEnv |> fst
+        ok, env.Add(name, makeFunction name isValue f body)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -115,20 +128,13 @@ and evalQuote parms env =
     | _ -> failwith "quote: supports only one parameter"
 
 and evalFun f args (env:Env) =
-    let localEnv = bind f.Parms args env
-    eval f.Body localEnv
+    (f.F args), env
     
 and evalMacro m args (env:Env) =
     let localEnv = bind m.Parms args env
     eval m.Body localEnv
 
-and bind parms args (env:Env) =
-        match parms, args with
-        | [],[] -> env
-        | Symbol sym:: parm_r, value :: value_r ->
-            let newEnv = env.Add(sym, makeVar sym value)
-            bind parm_r value_r newEnv
-        | _ -> failwith "bind: failed to bind expressions to arguments"
+
 
 and evalValue exp env = 
     eval exp env |> fst

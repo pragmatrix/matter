@@ -20,14 +20,14 @@ type Expression =
 
 
 and Function = 
-    { Name: string; Parms: Expression list; Body: Expression }
+    { Name: string; IsValue:bool; F: Expression list -> Expression }
 and Macro =    
     { Name: string; Parms: Expression list; Body: Expression }
 and Variable = 
     { Name: string; Value: Expression }
 
-let makeFunction name parms body =
-    Func { Name = name; Parms = parms; Body = body }
+let makeFunction name isValue f body =
+    Func { Name = name; IsValue = isValue; F = f }
 
 let makeVar name value =
     Var { Name = name; Value = value }
