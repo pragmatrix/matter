@@ -86,7 +86,7 @@ and evalDef parms (env:Env) =
         let f args =
             let localEnv = bind parms args env
             eval body localEnv |> fst
-        ok, env.Add(name, makeFunction name isValue f body)
+        ok, env.Add(name, makeFunction name isValue f)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -134,13 +134,17 @@ and evalMacro m args (env:Env) =
     let localEnv = bind m.Parms args env
     eval m.Body localEnv
 
-
-
 and evalValue exp env = 
     eval exp env |> fst
 
 and evalDot args env =
-    failwith "not implemented"
+    match args with
+    | [Symbol "list"] ->
+        makeFunction "list" false List, env
+    | [Symbol n] -> failwith (sprintf ". %s not implemented" n)
+    | _ -> failwith ". expects a symbol as its only argument"
+
+//
 
 let doify expressions = 
     (List (Symbol "do" :: expressions))

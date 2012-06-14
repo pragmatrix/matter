@@ -1,3 +1,2 @@
 ﻿(def list 
 	(. list))
-

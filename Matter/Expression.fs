@@ -26,7 +26,7 @@ and Macro =
 and Variable = 
     { Name: string; Value: Expression }
 
-let makeFunction name isValue f body =
+let makeFunction name isValue f =
     Func { Name = name; IsValue = isValue; F = f }
 
 let makeVar name value =
