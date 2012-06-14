@@ -3,30 +3,43 @@
 open Tokenizer
 open Expression
 
-let atom token = 
+let (|Atom|_|) token = 
     match token with
-    | Tokenizer.Number n -> Number n
-    | Tokenizer.String str -> String str
-    | Tokenizer.Boolean bool -> Boolean bool
-    | Tokenizer.Keyword kw -> Keyword kw
-    | Tokenizer.Symbol s -> Symbol s
-    | _ -> failwith "expected atom"
-
+    | Tokenizer.Number n -> Some (Number n)
+    | Tokenizer.String str -> Some (String str)
+    | Tokenizer.Boolean bool -> Some (Boolean bool)
+    | Tokenizer.Keyword kw -> Some (Keyword kw)
+    | Tokenizer.Symbol s -> Some(Symbol s)
+    | _ -> None
+    
 
 let parse tokens =
     let rec parseInner res tokens =
         match tokens with
         | [] -> 
             res, []
-        | End :: rest ->
-            res, rest
+        | End :: _ ->
+            // never consume the end (must be done at begin)
+            res, tokens
         | Begin :: rest ->
-            let nested, rest = update_res (reverse >> List) (parseInner [] rest)
-            let res = nested :: res
+            let nested, rest = update_res reverse (parseInner [] rest)
+            match rest with
+            | End :: rest ->
+                let res = (List nested) :: res
+                parseInner res rest
+            | _ -> failwith "missing ')'"
+
+        | Quote :: rest ->
+            let tail, rest = update_res reverse (parseInner [] rest)
+            match tail with
+            | quoted :: tailq ->
+                let resq = (reverse tailq) @ (List [(Symbol "quote") ; quoted] :: res)
+                parseInner resq rest
+            | _ -> failwith "' must be followed by expression"
+        | Atom t :: rest -> 
+            let res = t :: res
             parseInner res rest
-        | t :: rest -> 
-            let res = atom t :: res
-            parseInner res rest
+        | _ -> failwith "failed to tokenize input"
           
     let res, leftover = parseInner [] tokens
     match leftover with
