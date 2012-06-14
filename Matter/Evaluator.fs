@@ -4,7 +4,7 @@ open Expression
 open Parser
 open Runtime
 
-type Env = Map<string, Expression >
+type Env = Map<string, Expression>
 
 let ok = Keyword "ok"
 
