@@ -21,7 +21,7 @@ type MacroTests() =
         let r = runProgram "(defmacro a (b v1 v2) (list 'if b v1 v2)) (a true 10 11)"
         test r (Number 10)
 
-    // could we implement macro templating with another macro?
+    // could we implement syntax quoting with another macro?
     // say like
     // (` if ~b ~v1 ~v2)
     // splicing:
@@ -29,6 +29,6 @@ type MacroTests() =
     // if yes, we shouldn't put this on the reader
 
     // [<Test>]
-    member this.testUnquote() =
+    member this.testSyntaxQuote() =
         let r = runProgram "(defmacro a (b v1 v2) `(if ~b ~v1 ~v2)) (a true 10 11)"
         test r (Number 10)
