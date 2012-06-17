@@ -17,6 +17,9 @@ type Token =
     | End
     | Quote
 
+    | Newline
+    | Indent of int 
+
 
 let rec takeWhileCore f (s,s2) = 
     match s2 with
@@ -79,11 +82,8 @@ let takeString input =
 
 let takeNumber = takeWhile isDigit
 
-let isEOLCharacter c =
-    c = '\n' || c = '\r'
-
 let isWhitespace c = 
-    c = ' ' || c = '\t' || isEOLCharacter c
+    c = ' ' || c = '\t' || c = '\r'
 
 let rec tokenize res input =
     match input with
@@ -113,8 +113,17 @@ let rec tokenize res input =
         tokenize res rest
 
     | ';' :: rest ->
-        let rest = skip (isEOLCharacter >> not) rest
+        let rest = skip ( (<>) '\n') rest
         tokenize res rest
+
+    | '\n' :: rest ->
+        let res = Newline :: res
+        let tabs, rest = takeWhile ((=) '\t') rest
+        if tabs.Length > 0 then
+            let res = Indent tabs.Length ::res
+            tokenize res rest
+        else
+            tokenize res rest
 
     | c :: rest ->
         match c with

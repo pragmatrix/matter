@@ -2,6 +2,7 @@
 
 open NUnit.Framework
 
+open Syntax
 open Interpreter
 open Expression
 
@@ -10,6 +11,8 @@ type MacroTests() =
 
     let test l r = 
         Assert.That(print l, Is.EqualTo(print r))
+
+    let interpretString = interpretString braceSyntax
 
     [<Test>]
     member this.testMacroSimple() =

@@ -1,6 +1,8 @@
 ﻿module ParserTests
 
 open NUnit.Framework
+
+open Syntax
 open Parser
 open Expression
 
@@ -9,6 +11,8 @@ type ParserTests() =
 
     let test l r = 
         Assert.That(print (List l), Is.EqualTo(print (List r)))
+
+    let parseString = parseString braceSyntax
 
     [<Test>]
     member this.testEmpty() =

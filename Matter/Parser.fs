@@ -46,5 +46,5 @@ let parse tokens =
     | [] -> reverse res
     | _ -> failwith "Failed to completely parse input"
 
-let parseString str =
-    tokenizeString str |> parse
+let parseString syntax str =
+    tokenizeString str |> syntax |> parse

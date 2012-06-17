@@ -45,6 +45,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Compile Include="TokenizerTests.fs" />
+    <Compile Include="SyntaxTests.fs" />
     <Compile Include="ParserTests.fs" />
     <Compile Include="EvaluatorTests.fs" />
     <Compile Include="InterpreterTests.fs" />

@@ -4,12 +4,15 @@ open NUnit.Framework
 
 open Evaluator
 open Expression
+open Syntax
 
 [<TestFixture>]
 type EvaluatorTests() =
 
     let test (l, _) r = 
         Assert.That(print l, Is.EqualTo(print r))
+
+    let evalString = evalString braceSyntax
 
     [<Test>]
     member this.testLiteral() =

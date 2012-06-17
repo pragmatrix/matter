@@ -1,13 +1,16 @@
 ﻿// Learn more about F# at http://fsharp.net
 
 module TokenizerTests
-
-open Tokenizer
 open NUnit.Framework
 
+open Syntax
+open Tokenizer
 
 [<TestFixture>]
 type TokenizerTests() =
+
+    // todo: use original tokenizeString for these tests again
+    let tokenizeString = tokenizeString >> braceSyntax
 
     [<Test>]
     member this.testSymbol() =
@@ -52,6 +55,9 @@ type TokenizerTests() =
     member this.testWhitespace() =
         let res = tokenizeString "  \n\rHuhu"
         Assert.That(res, Is.EqualTo([Symbol "Huhu"]))
+
+    [<Test>]
+    member this.testWhitespace2() =
         let res = tokenizeString "Huhu  \n\r"
         Assert.That(res, Is.EqualTo([Symbol "Huhu"]))
 

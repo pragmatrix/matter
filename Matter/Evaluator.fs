@@ -159,7 +159,7 @@ let doify expressions =
 let evalExpressions expressions = 
     eval (doify expressions) Map.empty
 
-let evalString str = 
-    let expressions = parseString str
+let evalString syntax str = 
+    let expressions = parseString syntax str
     evalExpressions expressions
 
