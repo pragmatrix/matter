@@ -19,6 +19,7 @@ type Token =
 
     | Newline
     | Indent of int 
+    | Comma
 
 
 let rec takeWhileCore f (s,s2) = 
@@ -118,13 +119,17 @@ let rec tokenize res input =
 
     | '\n' :: rest ->
         let res = Newline :: res
-        let tabs, rest = takeWhile ((=) '\t') rest
-        if tabs.Length > 0 then
-            let res = Indent tabs.Length ::res
-            tokenize res rest
-        else
-            tokenize res rest
+        tokenize res rest
 
+    | '\t' :: rest ->
+        let tabs, rest = takeWhile ((=) '\t') rest
+        let res = Indent (tabs.Length+1) :: res
+        tokenize res rest
+
+    | ',' :: rest ->
+        let res = Comma :: res
+        tokenize res rest
+        
     | c :: rest ->
         match c with
         | c when isSymbolFirst c ->
