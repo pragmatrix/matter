@@ -44,5 +44,24 @@ type SyntaxTests() =
 
     [<Test>]
     member this.testEmptyLinesWithIndent() =
-        let res = run "def\n\n\t\t\n\ndef2"
-        test res "(def) (def2)"
+        let res = run "def a 10\n\n\t\t\n\ndef b 11"
+        test res "(def a 10) (def b 11)"
+
+    // a single symbol is not enclosed in parethesis.
+    [<Test>]
+    member this.testSingleSymbol() =
+        let res = run "a";
+        test res "a";
+
+    // likewise a literal is not
+    [<Test>]
+    member this.testSingleLiteral() =
+        let res = run "10";
+        test res "10";
+
+    // explicit enclosing one token leaves one level of paranthesis
+    [<Test>]
+    member this.testSingleLiteralInParens() =
+        let res = run "(10)";
+        test res "(10)";
+

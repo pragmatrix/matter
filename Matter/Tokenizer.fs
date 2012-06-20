@@ -13,6 +13,7 @@ type Token =
     | Keyword of string 
 
     | Symbol of string
+
     | Begin
     | End
     | Quote
