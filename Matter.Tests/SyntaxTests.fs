@@ -10,7 +10,7 @@ type SyntaxTests() =
 
     let test (res : Token list) (expected : string) = Assert.That(res, Is.EqualTo(tokenizeString expected))
 
-    let run = tokenizeString >> lightSyntax
+    let run = tokenizeString >> indentSyntax
 
     [<Test>]
     member this.testSingleLine() = 

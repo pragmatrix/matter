@@ -5,7 +5,7 @@ open Tokenizer
 type State = { Base : int option; Level : int }
 
 // this is supposed to consume all Newline and Indent tokens!
-let lightSyntax tokens =
+let indentSyntax tokens =
     let ends num = List.replicate num End
 
     let rec p res rest state = 
