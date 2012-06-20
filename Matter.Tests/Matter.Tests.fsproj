@@ -50,6 +50,7 @@
     <Compile Include="EvaluatorTests.fs" />
     <Compile Include="InterpreterTests.fs" />
     <Compile Include="MacroTests.fs" />
+    <Compile Include="ScopingTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Matter\Matter.fsproj">
