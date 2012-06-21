@@ -149,6 +149,8 @@ and bind parms (args:Expression list) (frame:Frame) =
 and evalValue exp env = 
     eval exp env |> fst
 
+// '.', the rabbit hole ;)
+
 and evalDot args env =
     match args with
     | [Symbol name] ->
