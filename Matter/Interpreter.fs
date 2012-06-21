@@ -22,4 +22,4 @@ let interpretString syntax str =
     let prelude = staticMatter
     let expressions = parseString syntax str
     let program = doify (prelude :: expressions)
-    eval program Map.empty |> fst
+    eval program Frame.empty |> fst

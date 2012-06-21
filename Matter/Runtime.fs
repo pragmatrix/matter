@@ -3,11 +3,14 @@
 open Expression
 
 let essentialFunctions = [
-    { Name = "list"; F = List }
-    { Name = "head"; F = fun (e::_) -> e }
-    { Name = "tail"; F = fun (_::t) -> List t }
+    "list", List
+    "head", fun (e::_) -> e
+    "tail", fun (_::t) -> List t
     ]
 
 let functionMap = 
-    let pairs = List.map (fun (f:Function) -> f.Name, f) essentialFunctions
+    let conv (name, f) =
+        name, ResolvedFunc(Frame.empty, { Name = name; F = fun _ -> f })
+
+    let pairs = List.map conv essentialFunctions
     Map.ofList pairs

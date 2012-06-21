@@ -12,7 +12,7 @@ type ScopingTests() =
     let test l r = 
         Assert.That(print l, Is.EqualTo(print r))
 
-    let interpretString = interpretString indentSyntax
+    let interpret = interpretString indentSyntax
 
     [<Test>]
     member this.testVisibleBelow() =
@@ -21,5 +21,25 @@ type ScopingTests() =
             def b (if true a 11)
             b
             "
-        let r = interpretString str
+        let r = interpret str
         test r (Number 10)
+    
+    [<Test>]
+    member this.testVisibleAbove() =
+        let str = "
+            def b (if true a 11)
+            def a 10
+            b
+            "
+        let r = interpret str
+        test r (Number 10)
+
+    [<Test>]
+    member this.testEvaluationAtTop() =
+        let str = "
+            a
+            def a 10
+            "
+        let r = interpret str
+        test r (Number 10)
+               

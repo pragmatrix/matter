@@ -4,7 +4,6 @@ open Expression
 open Parser
 open Runtime
 
-type Env = Map<string, Expression>
 
 let ok = Keyword "ok"
 
@@ -17,93 +16,94 @@ let (|IsSelfEval|_|) expression =
     | Keyword _ -> yes
     | _ -> None
 
-let rec eval expression (env:Env) =
+// returns the result of the lookup and the frame it was found in
+
+let rec eval expression (frame:Frame) =
     match expression with
-    | IsSelfEval exp -> exp, env
+    | IsSelfEval exp -> exp, frame
 
     // variable (evaluates to the "value" of the symbol)
     | Symbol s ->
-        let exp = env.TryFind s
-        match exp with
+        let r = Frame.lookup s frame
+        match r with
         | None -> failwith (sprintf "undefined symbol '%s'" s)
-        | Some exp ->
+        | Some (exp, fframe) ->
             match exp with
-            | Var { Value=value } -> value, env
+            // right now we "evaluate" the value on lookup.
+            | Var { Value=value } -> (value fframe), frame
+            | Func f -> ResolvedFunc(fframe, f), frame
             // todo: do macros have a value?
-            | _ -> exp, env
+            | _ -> exp, frame
 
 
     // special forms and function application
     | List (operator::args) -> 
         match operator with
-        | Symbol "do" -> evalDo args env
-        | Symbol "def" -> evalDef args env
-        | Symbol "defmacro" -> evalDefmacro args env
-        | Symbol "if" -> evalIf args env
-        | Symbol "quote" -> evalQuote args env
-        | Symbol "." -> evalDot args env
+        | Symbol "do" -> evalDo args frame
+        | Symbol "defmacro" -> evalDefmacro args frame
+        | Symbol "if" -> evalIf args frame
+        | Symbol "quote" -> evalQuote args frame
+        | Symbol "." -> evalDot args frame
         | _ -> 
-            let finalOperator = eval operator env |> fst
+            let finalOperator = eval operator frame |> fst
             match finalOperator with
             | Macro (m) -> 
                 // a macro is not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
-                let macroExp, envMacro = evalMacro m args env
-                eval macroExp env
-            | Func (f) ->
-                let args = evalArgs args env
-                evalFun f args env
+                let macroExp, envMacro = evalMacro m args frame
+                eval macroExp frame
+            | ResolvedFunc (fframe, f) ->
+                let args = evalArgs args frame
+                evalFun f args fframe, frame
             | _ -> failwith (sprintf "expect function, but seen %s" (print finalOperator))
 
     | _ -> failwith "failed to evaluate expression"
 
-and apply operator args env =
-    match operator with
-    | Func f -> evalFun f args env
-    | _ -> failwith (sprintf "apply: undefined %s" (print operator))
+and evalArgs args frame =
+    List.map (fun exp -> eval exp frame |> fst) args
 
-and evalArgs args env =
-    List.map (fun exp -> eval exp env |> fst) args
-
-and evalDo expressions env =
-    List.fold (fun (_,env) exp -> eval exp env) (List [], env) expressions
+and evalDo expressions frame =
     
-and bind parms args (env:Env) =
-        match parms, args with
-        | [],[] -> env
-        | Symbol sym:: parm_r, value :: value_r ->
-            let newEnv = env.Add(sym, makeVar sym value)
-            bind parm_r value_r newEnv
-        | _ -> failwith "bind: failed to bind expressions to arguments"
-
-and evalDef parms (env:Env) =
-    
-    let def name parms body =
+    let analyzeDef name parms body frame =
         let isValue = List.isEmpty parms
         // env of a function is lexically scoped!
-        let f args =
-            let localEnv = bind parms args env
-            eval body localEnv |> fst
+        let f fframe args =
+            let lframe = bind parms args fframe
+            eval body lframe |> fst
 
         let exp = 
             if isValue then 
-                makeVar name (f []) 
+                makeVar name (fun fframe -> f fframe []) 
             else 
                 makeFunction name f
 
-        ok, env.Add(name, exp)
+        Frame.add frame (name, exp)
 
+    let analyzeDef expression = 
+        match expression with
+        | List [Symbol("def") ; Symbol name ; body] -> analyzeDef name [] body
+        | List [Symbol("def") ; Symbol name ; List parms; body ] -> analyzeDef name parms body
+        | _ -> failwith "def: invalid arguments"
 
-    match parms with
-    | [Symbol symbol; body] -> def symbol [] body
-    | [Symbol symbol; List parms; body] -> def symbol parms body
+    let isDef expression =
+        match expression with
+        | List (Symbol("def") :: _) -> true
+        | _ -> false
 
-    | _ -> failwith "def: invalid arguments"
+    let (defs, rest) = List.partition isDef expressions
 
-and evalDefmacro parms (env:Env) =
+    let analyzedDefs = List.map analyzeDef defs
+
+    // all defs together get their own frame.
+    let defsFrame = List.fold (fun f a -> a f) (Frame.derive frame) analyzedDefs
+
+    List.fold (fun (_,doframe) exp -> eval exp doframe) (List [], defsFrame) rest
+
+and evalDefmacro parms frame =
 
     let def symbol parms body = 
-        ok, env.Add(symbol, makeMacro symbol parms body)
+        let exp = makeMacro symbol parms body
+        ok, Frame.add frame (symbol, exp)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
@@ -111,19 +111,19 @@ and evalDefmacro parms (env:Env) =
 
     | _ -> failwith "defmacro: invalid arguments"
 
-and evalIf parms (env:Env) =
+and evalIf parms frame =
     match parms with
     | [test; ifTrue; ifFalse] ->
-        let value = evalValue test env
+        let value = evalValue test frame
         match value with
-        | Boolean b -> eval (if b then ifTrue else ifFalse) env
+        | Boolean b -> eval (if b then ifTrue else ifFalse) frame
         | _ -> failwith "if: expect boolean expression"
 
     | [test; ifTrue ] ->
-        let value = evalValue test env
+        let value = evalValue test frame
         match value with
-        | Boolean true -> eval ifTrue env
-        | Boolean false -> List [], env
+        | Boolean true -> eval ifTrue frame
+        | Boolean false -> List [], frame
         |_ -> failwith "if: expect boolean expression"
 
     | _ -> failwith "if: (if exp then else?)"
@@ -133,12 +133,20 @@ and evalQuote parms env =
     | p :: [] -> p,env
     | _ -> failwith "quote expects only one parameter"
 
-and evalFun f args (env:Env) =
-    (f.F args), env
+and evalFun f args fframe =
+    (f.F fframe args)
     
-and evalMacro m args (env:Env) =
-    let localEnv = bind m.Parms args env
+and evalMacro m args frame =
+    let localEnv = bind m.Parms args frame
     eval m.Body localEnv
+
+and bind parms (args:Expression list) (frame:Frame) =
+        match parms, args with
+        | [],[] -> frame
+        | Symbol sym:: parm_r, value :: value_r ->
+            let newFrame = Frame.add frame (sym, makeVar sym (fun _ -> value))
+            bind parm_r value_r newFrame
+        | _ -> failwith "bind: failed to bind expressions to arguments"
 
 and evalValue exp env = 
     eval exp env |> fst
@@ -147,7 +155,7 @@ and evalDot args env =
     match args with
     | [Symbol name] ->
         match Map.tryFind name functionMap with
-        | Some f -> Func f, env
+        | Some f -> f, env
         | None -> failwith (sprintf ". %s not implemented" name)
     | _ -> failwith ". expects one symbol"
 
@@ -157,7 +165,7 @@ let doify expressions =
     (List (Symbol "do" :: expressions))
 
 let evalExpressions expressions = 
-    eval (doify expressions) Map.empty
+    eval (doify expressions) Frame.empty
 
 let evalString syntax str = 
     let expressions = parseString syntax str
