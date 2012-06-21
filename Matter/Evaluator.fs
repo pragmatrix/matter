@@ -16,8 +16,6 @@ let (|IsSelfEval|_|) expression =
     | Keyword _ -> yes
     | _ -> None
 
-// returns the result of the lookup and the frame it was found in
-
 let rec eval expression (frame:Frame) =
     match expression with
     | IsSelfEval exp -> exp, frame
@@ -66,7 +64,7 @@ and evalDo expressions frame =
     
     let analyzeDef name parms body frame =
         let isValue = List.isEmpty parms
-        // env of a function is lexically scoped!
+        // frame of a function is lexically scoped!
         let f fframe args =
             let lframe = bind parms args fframe
             eval body lframe |> fst
