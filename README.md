@@ -7,9 +7,9 @@ Matter is being bootstrapped using F#, but should be independent of the runtime 
 Although in its early stages, it already supports a number of features:
 
 - [homoiconicity](https://en.wikipedia.org/wiki/Homoiconicity) -> the language is represented in its own datatypes
-- macros -> metaprogramming, extend the language
+- macros -> metaprogramming feature to extend the language
 - indentation syntax -> less braces
-- simultaneous scoping (no declares like in clojure)
+- simultaneous scoping (no forward declarations like in clojure)
 
 The next steps are
 
