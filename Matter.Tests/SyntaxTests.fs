@@ -47,7 +47,7 @@ type SyntaxTests() =
         let res = run "def a 10\n\n\t\t\n\ndef b 11"
         test res "(def a 10) (def b 11)"
 
-    // a single symbol is not enclosed in parethesis.
+    // a single symbol is not enclosed in parenthesis.
     [<Test>]
     member this.testSingleSymbol() =
         let res = run "a";
