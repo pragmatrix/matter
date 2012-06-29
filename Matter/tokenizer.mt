@@ -11,16 +11,20 @@
 ; :end
 ; :quote
 
-def takeWhileCore (f out in)
+; matter.mt candidate
+; or lang.mt?
+
+def pair (a b) (list a b)
+
+def takeWhileCore (p out in)
 	if (empty? in)
-		list out in
+		pair out in
 		do
 			let c (head in)
 			let rest (tail in)
-			let r (f c)
-			if (! r)
-				list out in
+			if (p c)
 				takeWhileCore f (conj c out) rest
+				pair out in
 
 
 			
