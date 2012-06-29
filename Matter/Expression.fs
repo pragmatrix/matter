@@ -23,7 +23,7 @@ and Macro =
 and Record =
     | Function of (Frame -> Expression list -> Expression)
     | Variable of (Frame -> Expression)
-    | MacroRecord of Macro
+    | Macro of Macro
 
 and Frame = 
     | Frame of Frame option * Map<string, Record>
@@ -58,7 +58,7 @@ let rec print exp =
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
     | Lambda _ -> "fun "
-    | Macro _ -> "macro "
+    | Expression.Macro _ -> "macro "
 
 let doify expressions = 
     (List (Symbol "do" :: expressions))

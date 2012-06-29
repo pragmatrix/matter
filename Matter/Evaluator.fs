@@ -30,7 +30,7 @@ let rec eval expression (frame:Frame) =
             match exp with
             | Variable f -> (f fframe), frame
             | Function f -> Lambda (f fframe), frame
-            | MacroRecord m -> Macro m, frame
+            | Macro m -> Expression.Macro m, frame
 
     // special forms and function application
     | List (operator::args) -> 
@@ -45,7 +45,7 @@ let rec eval expression (frame:Frame) =
         | _ -> 
             let finalOperator = eval operator frame |> fst
             match finalOperator with
-            | Macro (m) -> 
+            | Expression.Macro (m) -> 
                 // a macro is not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
                 let macroExp, envMacro = evalMacro m args frame
@@ -112,7 +112,7 @@ and evalFun expressions frame =
 and evalDefmacro parms frame =
 
     let def symbol parms body = 
-        let record = MacroRecord { Parms = parms; Body = body }
+        let record = Macro { Parms = parms; Body = body }
         ok, Frame.add frame (symbol, record)
 
     match parms with
