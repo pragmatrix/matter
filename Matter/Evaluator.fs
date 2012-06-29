@@ -44,6 +44,7 @@ let rec eval expression (frame:Frame) =
         | Symbol "if" -> evalIf args frame
         // defs can appear here to (not only inside do, for example in an if-then-else)
         | Symbol "def" -> evalDef args frame
+        | Symbol "let" -> evalDef args frame
         | Symbol "quote" -> evalQuote args, frame
         | Symbol "." -> evalDot args, frame
         | _ -> 

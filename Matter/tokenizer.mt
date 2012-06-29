@@ -15,9 +15,9 @@ def takeWhileCore (f out in)
 	if (empty? in)
 		list out in
 		do
-			def c (head in)
-			def rest (tail in)
-			def r (f c)
+			let c (head in)
+			let rest (tail in)
+			let r (f c)
 			if (! r)
 				list out in
 				takeWhileCore f (conj c out) rest

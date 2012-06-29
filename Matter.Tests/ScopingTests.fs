@@ -47,9 +47,31 @@ type ScopingTests() =
     member this.testDefInIf() =
         let str = "
             if true
-            \tdef a 10
-            \tdef a 11
+            \tdef a 1
+            \tdef a 2
             a
             "
         let r = interpret str
-        test r (Number 10)
+        test r (Number 1)
+
+    [<Test>]
+    member this.testSimpleLet() =
+        let str = "
+            let a true
+            let b 1
+            let c 2
+            let r (if a c b)
+            r
+            "
+        let r = interpret str
+        test r (Number 2)
+
+    [<Test>]
+    member this.testLetOverwrite() =
+        let str = "
+            let a 1
+            let a 2
+            a
+            "
+        let r = interpret str
+        test r (Number 2)
