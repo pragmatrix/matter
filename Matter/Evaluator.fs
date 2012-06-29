@@ -23,13 +23,15 @@ let rec eval expression (frame:Frame) =
     | Symbol s ->
         let r = Frame.lookup s frame
         match r with
-        | None -> failwith (sprintf "undefined symbol '%s'" s)
         | Some (exp, fframe) ->
             // function and variables are bound to their frame
-            match exp with
-            | Variable f -> (f fframe), frame
-            | Function f -> Lambda (f fframe), frame
-            | Macro m -> Expression.Macro m, frame
+            let v = 
+                match exp with
+                | Variable f -> (f fframe)
+                | Function f -> Lambda (f fframe)
+                | Macro m -> Expression.Macro m
+            v, frame
+        | None -> failwith (sprintf "undefined symbol '%s'" s)
 
     // special forms and function application
     | List (operator::args) -> 
@@ -40,22 +42,22 @@ let rec eval expression (frame:Frame) =
         | Symbol "defmacro" -> evalDefmacro args frame
 
         | Symbol "if" -> evalIf args frame
-        // defs can appear here to (not only inside do, for example in a if-then-else)
+        // defs can appear here to (not only inside do, for example in an if-then-else)
         | Symbol "def" -> evalDef args frame
-        | Symbol "quote" -> evalQuote args frame
-        | Symbol "." -> evalDot args frame
+        | Symbol "quote" -> evalQuote args, frame
+        | Symbol "." -> evalDot args, frame
         | _ -> 
             let finalOperator = eval operator frame |> fst
             match finalOperator with
-            | Expression.Macro (m) -> 
+            | Lambda f ->
+                let args = evalArgs args frame
+                f args, frame
+            | Expression.Macro m -> 
                 // a macro is not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
                 let macroExp, envMacro = evalMacro m args frame
                 eval macroExp frame
-            | Lambda f ->
-                let args = evalArgs args frame
-                f args, frame
-            | _ -> failwith (sprintf "expect function, but seen %s" (print finalOperator))
+            | _ -> failwith (sprintf "expect lambda or macro, but seen %s" (print finalOperator))
 
     | _ -> failwith "failed to evaluate expression"
 
@@ -145,9 +147,9 @@ and evalIf parms frame =
 
     | _ -> failwith "if: (if exp then else?)"
 
-and evalQuote parms env =
-    match parms with
-    | p :: [] -> p,env
+and evalQuote args =
+    match args with
+    | p :: [] -> p
     | _ -> failwith "quote expects only one parameter"
     
 and evalMacro m args frame =
@@ -167,11 +169,11 @@ and evalValue exp env =
 
 // '.', the rabbit hole ;)
 
-and evalDot args env =
+and evalDot args =
     match args with
     | [Symbol name] ->
         match Map.tryFind name functionMap with
-        | Some f -> f, env
+        | Some f -> f
         | None -> failwith (sprintf ". %s not implemented" name)
     | _ -> failwith ". expects one symbol"
 
