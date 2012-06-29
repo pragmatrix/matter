@@ -42,4 +42,14 @@ type ScopingTests() =
             "
         let r = interpret str
         test r (Number 10)
-               
+
+    [<Test>]
+    member this.testDefInIf() =
+        let str = "
+            if true
+            \tdef a 10
+            \tdef a 11
+            a
+            "
+        let r = interpret str
+        test r (Number 10)

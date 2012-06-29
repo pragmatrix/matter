@@ -20,7 +20,6 @@ let rec eval expression (frame:Frame) =
     match expression with
     | IsSelfEval exp -> exp, frame
 
-    // variable (evaluates to the "value" of the symbol)
     | Symbol s ->
         let r = Frame.lookup s frame
         match r with
@@ -35,11 +34,14 @@ let rec eval expression (frame:Frame) =
     // special forms and function application
     | List (operator::args) -> 
         match operator with
+        | Symbol "fun" -> evalFun args frame, frame
+
         | Symbol "do" -> evalDo args frame
-        | Symbol "fun" -> evalFun args frame
         | Symbol "defmacro" -> evalDefmacro args frame
 
         | Symbol "if" -> evalIf args frame
+        // defs can appear here to (not only inside do, for example in a if-then-else)
+        | Symbol "def" -> evalDef args frame
         | Symbol "quote" -> evalQuote args frame
         | Symbol "." -> evalDot args frame
         | _ -> 
@@ -58,10 +60,21 @@ let rec eval expression (frame:Frame) =
     | _ -> failwith "failed to evaluate expression"
 
 and evalArgs args frame =
-    List.map (fun exp -> eval exp frame |> fst) args
+    List.map (fun arg -> eval arg frame |> fst) args
 
-and evalDo expressions frame =
-    
+and evalFun expressions frame =
+    let lambda symbols body =
+        let apply args =
+            let lframe = bind symbols args frame
+            eval body lframe |> fst
+        (Lambda apply)
+
+    match expressions with
+    | Symbol parm :: body -> lambda [Symbol(parm)] (doify body)
+    | List symbols :: body -> lambda symbols (doify body)
+    | _ -> failwith "fun: invalid arguments"
+
+and analyzeDef expression = 
     let analyzeDef name parms body frame =
         let isValue = List.isEmpty parms
         // frame of a function is lexically scoped!
@@ -77,11 +90,15 @@ and evalDo expressions frame =
 
         Frame.add frame (name, record)
 
-    let analyzeDef expression = 
-        match expression with
-        | List [Symbol("def") ; Symbol name ; body] -> analyzeDef name [] body
-        | List [Symbol("def") ; Symbol name ; List parms; body ] -> analyzeDef name parms body
-        | _ -> failwith "def: invalid arguments"
+    match expression with
+    | List [Symbol("def") ; Symbol name ; body] -> analyzeDef name [] body
+    | List [Symbol("def") ; Symbol name ; List parms; body ] -> analyzeDef name parms body
+    | _ -> failwith "def: invalid arguments"
+
+and evalDef expressions frame =
+    ok, analyzeDef (List (Symbol "def" :: expressions)) frame
+
+and evalDo expressions frame =
 
     let isDef expression =
         match expression with
@@ -96,18 +113,6 @@ and evalDo expressions frame =
     let defsFrame = List.fold (fun f a -> a f) (Frame.derive frame) analyzedDefs
 
     List.fold (fun (_,doframe) exp -> eval exp doframe) (List [], defsFrame) rest
-
-and evalFun expressions frame =
-    let lambda symbols body =
-        let apply args =
-            let lframe = bind symbols args frame
-            eval body lframe |> fst
-        (Lambda apply), frame
-
-    match expressions with
-    | Symbol parm :: body -> lambda [Symbol(parm)] (doify body)
-    | List symbols :: body -> lambda symbols (doify body)
-    | _ -> failwith "fun: invalid arguments"
 
 and evalDefmacro parms frame =
 

@@ -65,3 +65,12 @@ type SyntaxTests() =
         let res = run "(10)";
         test res "(10)";
 
+    [<Test>]
+    member this.testIfThenElse() =
+        let res = run "
+            if true
+            \tdef a 10
+            \tdef a 11
+            "
+
+        test res "(if true (def a 10) (def a 11))"
