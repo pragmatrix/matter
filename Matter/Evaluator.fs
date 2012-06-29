@@ -132,7 +132,15 @@ and evalDefmacro parms frame =
 
     | _ -> failwith "defmacro: invalid arguments"
 
+and evalMacro m args frame =
+    let localEnv = bind m.Parms args frame
+    eval m.Body localEnv
+
 and evalIf parms frame =
+    
+    let evalValue exp env = 
+        eval exp env |> fst
+
     match parms with
     | [predicate; ifTrue; ifFalse] ->
         let value = evalValue predicate frame
@@ -153,10 +161,6 @@ and evalQuote args =
     match args with
     | p :: [] -> p
     | _ -> failwith "quote expects only one parameter"
-    
-and evalMacro m args frame =
-    let localEnv = bind m.Parms args frame
-    eval m.Body localEnv
 
 and bind symbols (args:Expression list) (frame:Frame) =
         match symbols, args with
@@ -165,9 +169,6 @@ and bind symbols (args:Expression list) (frame:Frame) =
             let newFrame = Frame.add frame (sym, Variable (fun _ -> value))
             bind parm_r value_r newFrame
         | _ -> failwith "bind: failed to bind expressions to arguments"
-
-and evalValue exp env = 
-    eval exp env |> fst
 
 // '.', the rabbit hole ;)
 
