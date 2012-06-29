@@ -20,7 +20,7 @@ type Expression =
     | Macro of Macro
 
 and Macro =    
-    { Name: string; Parms: Expression list; Body: Expression }
+    { Parms: Expression list; Body: Expression }
 and Frame = 
     | Frame of Frame option * Map<string, Expression>
 
@@ -42,8 +42,8 @@ and Frame =
             | Some p -> Frame.lookup str p
             | None -> None
 
-let makeMacro name parms body =
-    Macro { Name = name; Parms = parms; Body = body }
+let makeMacro parms body =
+    Macro { Parms = parms; Body = body }
 
 let rec print exp =
     match exp with
@@ -59,7 +59,7 @@ let rec print exp =
     | Lambda _ -> "fun "
     | Function _ -> "function "
     | Variable _ -> "var "
-    | Macro { Name = name } -> "macro " + name
+    | Macro _ -> "macro "
 
 let doify expressions = 
     (List (Symbol "do" :: expressions))

@@ -114,7 +114,7 @@ and evalFun expressions frame =
 and evalDefmacro parms frame =
 
     let def symbol parms body = 
-        let exp = makeMacro symbol parms body
+        let exp = makeMacro parms body
         ok, Frame.add frame (symbol, exp)
 
     match parms with
