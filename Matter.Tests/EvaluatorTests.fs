@@ -53,3 +53,13 @@ type EvaluatorTests() =
     member this.testIfNoElse2() =
         let r = evalString "(def a false) (if a 11)"
         test r (List [])
+
+    [<Test>]
+    member this.testLambda() =
+        let r = evalString "(def a (fun a (if a false true))) (a true)"
+        test r (Boolean false)
+
+    [<Test>]
+    member this.testLambdaMultipleArguments() =
+        let r = evalString "(def a (fun (a b c) (if a b c))) (a true false true)"
+        test r (Boolean false)

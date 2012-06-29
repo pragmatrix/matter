@@ -38,7 +38,9 @@ let rec eval expression (frame:Frame) =
     | List (operator::args) -> 
         match operator with
         | Symbol "do" -> evalDo args frame
+        | Symbol "fun" -> evalFun args frame
         | Symbol "defmacro" -> evalDefmacro args frame
+
         | Symbol "if" -> evalIf args frame
         | Symbol "quote" -> evalQuote args frame
         | Symbol "." -> evalDot args frame
@@ -52,7 +54,10 @@ let rec eval expression (frame:Frame) =
                 eval macroExp frame
             | ResolvedFunc (fframe, f) ->
                 let args = evalArgs args frame
-                evalFun f args fframe, frame
+                f.F fframe args, frame
+            | Lambda f ->
+                let args = evalArgs args frame
+                f args, frame
             | _ -> failwith (sprintf "expect function, but seen %s" (print finalOperator))
 
     | _ -> failwith "failed to evaluate expression"
@@ -65,15 +70,15 @@ and evalDo expressions frame =
     let analyzeDef name parms body frame =
         let isValue = List.isEmpty parms
         // frame of a function is lexically scoped!
-        let f fframe args =
+        let apply fframe args =
             let lframe = bind parms args fframe
             eval body lframe |> fst
 
         let exp = 
             if isValue then 
-                makeVar name (fun fframe -> f fframe []) 
+                makeVar name (fun fframe -> apply fframe []) 
             else 
-                makeFunction name f
+                makeFunction name apply
 
         Frame.add frame (name, exp)
 
@@ -96,6 +101,18 @@ and evalDo expressions frame =
     let defsFrame = List.fold (fun f a -> a f) (Frame.derive frame) analyzedDefs
 
     List.fold (fun (_,doframe) exp -> eval exp doframe) (List [], defsFrame) rest
+
+and evalFun expressions frame =
+    let lambda symbols body =
+        let apply args =
+            let lframe = bind symbols args frame
+            eval body lframe |> fst
+        (Lambda apply), frame
+
+    match expressions with
+    | Symbol parm :: body -> lambda [Symbol(parm)] (doify body)
+    | List symbols :: body -> lambda symbols (doify body)
+    | _ -> failwith "fun: invalid arguments"
 
 and evalDefmacro parms frame =
 
@@ -130,16 +147,13 @@ and evalQuote parms env =
     match parms with
     | p :: [] -> p,env
     | _ -> failwith "quote expects only one parameter"
-
-and evalFun f args fframe =
-    (f.F fframe args)
     
 and evalMacro m args frame =
     let localEnv = bind m.Parms args frame
     eval m.Body localEnv
 
-and bind parms (args:Expression list) (frame:Frame) =
-        match parms, args with
+and bind symbols (args:Expression list) (frame:Frame) =
+        match symbols, args with
         | [],[] -> frame
         | Symbol sym:: parm_r, value :: value_r ->
             let newFrame = Frame.add frame (sym, makeVar sym (fun _ -> value))
@@ -160,9 +174,6 @@ and evalDot args env =
     | _ -> failwith ". expects one symbol"
 
 //
-
-let doify expressions = 
-    (List (Symbol "do" :: expressions))
 
 let evalExpressions expressions = 
     eval (doify expressions) Frame.empty

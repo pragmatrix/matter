@@ -18,7 +18,7 @@ type Expression =
     | ResolvedFunc of Frame * Function
     | Var of Variable
     | Macro of Macro
-
+    | Lambda of (Expression list -> Expression)
 
 and Function = 
     { Name: string; F: Frame -> Expression list -> Expression }
@@ -73,3 +73,5 @@ let rec print exp =
     | Var { Name = name } -> "var " + name
     | Macro { Name = name } -> "macro " + name
 
+let doify expressions = 
+    (List (Symbol "do" :: expressions))
