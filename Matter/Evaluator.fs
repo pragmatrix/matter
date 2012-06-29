@@ -44,6 +44,7 @@ let rec eval expression (frame:Frame) =
         | Symbol "if" -> evalIf args frame
         // defs can appear here to (not only inside do, for example in an if-then-else)
         | Symbol "def" -> evalDef args frame
+        // could be replaced by a def generating macro, because defs in macros have no simultaneous scope.
         | Symbol "let" -> evalDef args frame
         | Symbol "quote" -> evalQuote args, frame
         | Symbol "." -> evalDot args, frame
