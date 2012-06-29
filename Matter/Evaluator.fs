@@ -74,7 +74,7 @@ and evalFun expressions frame =
     | List symbols :: body -> lambda symbols (doify body)
     | _ -> failwith "fun: invalid arguments"
 
-and analyzeDef expression = 
+and analyzeDef args = 
     let analyzeDef name parms body frame =
         let isValue = List.isEmpty parms
         // frame of a function is lexically scoped!
@@ -90,13 +90,13 @@ and analyzeDef expression =
 
         Frame.add frame (name, record)
 
-    match expression with
-    | List [Symbol("def") ; Symbol name ; body] -> analyzeDef name [] body
-    | List [Symbol("def") ; Symbol name ; List parms; body ] -> analyzeDef name parms body
+    match args with
+    | [Symbol name ; body] -> analyzeDef name [] body
+    | [Symbol name ; List parms; body ] -> analyzeDef name parms body
     | _ -> failwith "def: invalid arguments"
 
-and evalDef expressions frame =
-    ok, analyzeDef (List (Symbol "def" :: expressions)) frame
+and evalDef args frame =
+    ok, analyzeDef args frame
 
 and evalDo expressions frame =
 
@@ -107,7 +107,9 @@ and evalDo expressions frame =
 
     let (defs, rest) = List.partition isDef expressions
 
-    let analyzedDefs = List.map analyzeDef defs
+    let defArgs (List l) = List.tail l
+
+    let analyzedDefs = List.map (defArgs >> analyzeDef) defs
 
     // all defs together get their own frame.
     let defsFrame = List.fold (fun f a -> a f) (Frame.derive frame) analyzedDefs
