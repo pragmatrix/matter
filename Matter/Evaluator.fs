@@ -26,10 +26,9 @@ let rec eval expression (frame:Frame) =
         match r with
         | None -> failwith (sprintf "undefined symbol '%s'" s)
         | Some (exp, fframe) ->
+            // function and variables are bound to their frame
             match exp with
-            // right now we "evaluate" the value on lookup.
-            | Var { Value=value } -> (value fframe), frame
-            // function is converted into a lambda by applying its frame
+            | Variable f -> (f fframe), frame
             | Function f -> Lambda (f fframe), frame
             // todo: do macros have a value?
             | _ -> exp, frame
@@ -74,7 +73,7 @@ and evalDo expressions frame =
 
         let exp = 
             if isValue then 
-                makeVar name (fun fframe -> apply fframe []) 
+                Variable (fun fframe -> apply fframe []) 
             else 
                 Function apply
 
@@ -154,7 +153,7 @@ and bind symbols (args:Expression list) (frame:Frame) =
         match symbols, args with
         | [],[] -> frame
         | Symbol sym:: parm_r, value :: value_r ->
-            let newFrame = Frame.add frame (sym, makeVar sym (fun _ -> value))
+            let newFrame = Frame.add frame (sym, Variable (fun _ -> value))
             bind parm_r value_r newFrame
         | _ -> failwith "bind: failed to bind expressions to arguments"
 

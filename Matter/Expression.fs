@@ -16,14 +16,11 @@ type Expression =
 
     | Lambda of (Expression list -> Expression)
     | Function of (Frame -> Expression list -> Expression)
-
-    | Var of Variable
+    | Variable of (Frame -> Expression)
     | Macro of Macro
 
 and Macro =    
     { Name: string; Parms: Expression list; Body: Expression }
-and Variable = 
-    { Name: string; Value: Frame -> Expression }
 and Frame = 
     | Frame of Frame option * Map<string, Expression>
 
@@ -45,9 +42,6 @@ and Frame =
             | Some p -> Frame.lookup str p
             | None -> None
 
-let makeVar name value =
-    Var { Name = name; Value = value }
-
 let makeMacro name parms body =
     Macro { Name = name; Parms = parms; Body = body }
 
@@ -64,7 +58,7 @@ let rec print exp =
         "("+content+")"
     | Lambda _ -> "fun "
     | Function _ -> "function "
-    | Var { Name = name } -> "var " + name
+    | Variable _ -> "var "
     | Macro { Name = name } -> "macro " + name
 
 let doify expressions = 
