@@ -15,14 +15,18 @@ type Expression =
     | List of Expression list
 
     | Lambda of (Expression list -> Expression)
-    | Function of (Frame -> Expression list -> Expression)
-    | Variable of (Frame -> Expression)
     | Macro of Macro
 
 and Macro =    
     { Parms: Expression list; Body: Expression }
+
+and Record =
+    | Function of (Frame -> Expression list -> Expression)
+    | Variable of (Frame -> Expression)
+    | MacroRecord of Macro
+
 and Frame = 
-    | Frame of Frame option * Map<string, Expression>
+    | Frame of Frame option * Map<string, Record>
 
     static member empty = Frame(None, Map.empty)
 
@@ -42,9 +46,6 @@ and Frame =
             | Some p -> Frame.lookup str p
             | None -> None
 
-let makeMacro parms body =
-    Macro { Parms = parms; Body = body }
-
 let rec print exp =
     match exp with
     | Number n -> n.ToString()
@@ -57,8 +58,6 @@ let rec print exp =
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
     | Lambda _ -> "fun "
-    | Function _ -> "function "
-    | Variable _ -> "var "
     | Macro _ -> "macro "
 
 let doify expressions = 

@@ -30,9 +30,7 @@ let rec eval expression (frame:Frame) =
             match exp with
             | Variable f -> (f fframe), frame
             | Function f -> Lambda (f fframe), frame
-            // todo: do macros have a value?
-            | _ -> exp, frame
-
+            | MacroRecord m -> Macro m, frame
 
     // special forms and function application
     | List (operator::args) -> 
@@ -71,13 +69,13 @@ and evalDo expressions frame =
             let lframe = bind parms args fframe
             eval body lframe |> fst
 
-        let exp = 
+        let record = 
             if isValue then 
                 Variable (fun fframe -> apply fframe []) 
             else 
                 Function apply
 
-        Frame.add frame (name, exp)
+        Frame.add frame (name, record)
 
     let analyzeDef expression = 
         match expression with
@@ -114,8 +112,8 @@ and evalFun expressions frame =
 and evalDefmacro parms frame =
 
     let def symbol parms body = 
-        let exp = makeMacro parms body
-        ok, Frame.add frame (symbol, exp)
+        let record = MacroRecord { Parms = parms; Body = body }
+        ok, Frame.add frame (symbol, record)
 
     match parms with
     | [Symbol symbol; body] -> def symbol [] body
