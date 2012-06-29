@@ -72,6 +72,7 @@ let rec print exp =
     | ResolvedFunc(frame, f) -> "resolved " + (print (Func f))
     | Var { Name = name } -> "var " + name
     | Macro { Name = name } -> "macro " + name
+    | Lambda _ -> "fun "
 
 let doify expressions = 
     (List (Symbol "do" :: expressions))
