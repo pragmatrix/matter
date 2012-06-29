@@ -10,7 +10,7 @@ let essentialFunctions = [
 
 let functionMap = 
     let conv (name, f) =
-        name, ResolvedFunc(Frame.empty, { Name = name; F = fun _ -> f })
+        name, Lambda f
 
     let pairs = List.map conv essentialFunctions
     Map.ofList pairs

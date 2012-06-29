@@ -15,7 +15,6 @@ type Expression =
     | List of Expression list
 
     | Func of Function
-    | ResolvedFunc of Frame * Function
     | Var of Variable
     | Macro of Macro
     | Lambda of (Expression list -> Expression)
@@ -69,7 +68,6 @@ let rec print exp =
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
     | Func { Name = name } -> "fun " + name
-    | ResolvedFunc(frame, f) -> "resolved " + (print (Func f))
     | Var { Name = name } -> "var " + name
     | Macro { Name = name } -> "macro " + name
     | Lambda _ -> "fun "

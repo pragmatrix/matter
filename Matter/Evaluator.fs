@@ -29,7 +29,7 @@ let rec eval expression (frame:Frame) =
             match exp with
             // right now we "evaluate" the value on lookup.
             | Var { Value=value } -> (value fframe), frame
-            | Func f -> ResolvedFunc(fframe, f), frame
+            | Func f -> Lambda (f.F fframe), frame
             // todo: do macros have a value?
             | _ -> exp, frame
 
@@ -52,9 +52,6 @@ let rec eval expression (frame:Frame) =
                 // it can have an effect on it by returning defs or other defmacros.
                 let macroExp, envMacro = evalMacro m args frame
                 eval macroExp frame
-            | ResolvedFunc (fframe, f) ->
-                let args = evalArgs args frame
-                f.F fframe args, frame
             | Lambda f ->
                 let args = evalArgs args frame
                 f args, frame
