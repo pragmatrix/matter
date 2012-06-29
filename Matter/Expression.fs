@@ -20,7 +20,7 @@ type Expression =
     | Lambda of (Expression list -> Expression)
 
 and Function = 
-    { Name: string; F: Frame -> Expression list -> Expression }
+    { F: Frame -> Expression list -> Expression }
 and Macro =    
     { Name: string; Parms: Expression list; Body: Expression }
 and Variable = 
@@ -47,8 +47,8 @@ and Frame =
             | None -> None
 
 
-let makeFunction name f =
-    Func { Name = name; F = f }
+let makeFunction f =
+    Func { F = f }
 
 let makeVar name value =
     Var { Name = name; Value = value }
@@ -67,7 +67,7 @@ let rec print exp =
         let all = List.map print lst
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
-    | Func { Name = name } -> "fun " + name
+    | Func _ -> "function "
     | Var { Name = name } -> "var " + name
     | Macro { Name = name } -> "macro " + name
     | Lambda _ -> "fun "

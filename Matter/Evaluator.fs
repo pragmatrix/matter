@@ -75,7 +75,7 @@ and evalDo expressions frame =
             if isValue then 
                 makeVar name (fun fframe -> apply fframe []) 
             else 
-                makeFunction name apply
+                makeFunction apply
 
         Frame.add frame (name, exp)
 
