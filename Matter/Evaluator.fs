@@ -128,14 +128,14 @@ and evalDefmacro parms frame =
 
 and evalIf parms frame =
     match parms with
-    | [test; ifTrue; ifFalse] ->
-        let value = evalValue test frame
+    | [predicate; ifTrue; ifFalse] ->
+        let value = evalValue predicate frame
         match value with
         | Boolean b -> eval (if b then ifTrue else ifFalse) frame
         | _ -> failwith "if: expect boolean expression"
 
-    | [test; ifTrue ] ->
-        let value = evalValue test frame
+    | [predicate; ifTrue ] ->
+        let value = evalValue predicate frame
         match value with
         | Boolean true -> eval ifTrue frame
         | Boolean false -> List [], frame
