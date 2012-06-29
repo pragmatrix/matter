@@ -14,7 +14,7 @@ let loadMatter() =
     use stream = assembly.GetManifestResourceStream("matter.mt")
     use reader = new StreamReader(stream)
     let content = reader.ReadToEnd()
-    doify (parseString braceSyntax content)
+    doify (parseString indentSyntax content)
 
 let staticMatter = loadMatter()
 

@@ -1,9 +1,8 @@
-﻿(def list 
-	(. list))
+﻿def list 
+	. list
 
-(def head 
-	(. head))
+def head 
+	. head
 
-(def tail
-	(. tail))
-
+def tail
+	. tail
