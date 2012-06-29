@@ -29,7 +29,8 @@ let rec eval expression (frame:Frame) =
             match exp with
             // right now we "evaluate" the value on lookup.
             | Var { Value=value } -> (value fframe), frame
-            | Func f -> Lambda (f.F fframe), frame
+            // function is converted into a lambda by applying its frame
+            | Function f -> Lambda (f fframe), frame
             // todo: do macros have a value?
             | _ -> exp, frame
 
@@ -75,7 +76,7 @@ and evalDo expressions frame =
             if isValue then 
                 makeVar name (fun fframe -> apply fframe []) 
             else 
-                makeFunction apply
+                Function apply
 
         Frame.add frame (name, exp)
 

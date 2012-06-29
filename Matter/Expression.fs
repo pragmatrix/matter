@@ -14,13 +14,12 @@ type Expression =
 
     | List of Expression list
 
-    | Func of Function
+    | Lambda of (Expression list -> Expression)
+    | Function of (Frame -> Expression list -> Expression)
+
     | Var of Variable
     | Macro of Macro
-    | Lambda of (Expression list -> Expression)
 
-and Function = 
-    { F: Frame -> Expression list -> Expression }
 and Macro =    
     { Name: string; Parms: Expression list; Body: Expression }
 and Variable = 
@@ -46,10 +45,6 @@ and Frame =
             | Some p -> Frame.lookup str p
             | None -> None
 
-
-let makeFunction f =
-    Func { F = f }
-
 let makeVar name value =
     Var { Name = name; Value = value }
 
@@ -67,10 +62,10 @@ let rec print exp =
         let all = List.map print lst
         let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
         "("+content+")"
-    | Func _ -> "function "
+    | Lambda _ -> "fun "
+    | Function _ -> "function "
     | Var { Name = name } -> "var " + name
     | Macro { Name = name } -> "macro " + name
-    | Lambda _ -> "fun "
 
 let doify expressions = 
     (List (Symbol "do" :: expressions))
