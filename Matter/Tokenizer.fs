@@ -32,17 +32,14 @@ let rec takeWhileCore f (s,s2) =
 let takeWhile f input =
     takeWhileCore f ([], input)
       
-let skip f input =
-    match input with
-    | [] -> []
-    | v :: rest ->
-        if (f v) then rest else input
+let skipWhile f input =
+    takeWhile f input |> snd
 
 let isAlpha c = (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 let isDigit c = (c >= '0' && c <= '9')
 
 // right now we support '.' in symbols .. that may change later
-let isSymbolSpecial (c:char) = "!?_+-*/.".IndexOf(c) <> -1
+let isSymbolSpecial (c:char) = "!?_+-*/.=".IndexOf(c) <> -1
 
 let inline (>>||) a b = fun c -> (a c) || (b c)
 
@@ -115,7 +112,7 @@ let rec tokenize res input =
         tokenize res rest
 
     | ';' :: rest ->
-        let rest = skip ( (<>) '\n') rest
+        let rest = skipWhile ( (<>) '\n') rest
         tokenize res rest
 
     | '\n' :: rest ->
