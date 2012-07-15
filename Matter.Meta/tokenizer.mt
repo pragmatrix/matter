@@ -2,7 +2,7 @@
 ; :number int
 ; :string string
 ; :boolean bool
-; :keywoard string
+; :keyword string
 
 ; :symbol string
 ; :begin
