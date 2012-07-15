@@ -8,13 +8,13 @@ open System.IO
 
 open System.Reflection
 
-
-let loadMatter() =
-    let assembly = Assembly.GetExecutingAssembly()
-    use stream = assembly.GetManifestResourceStream("matter.mt")
+let loadFromManifest (assembly:Assembly) name =
+    use stream = assembly.GetManifestResourceStream(name)
     use reader = new StreamReader(stream)
     let content = reader.ReadToEnd()
     doify (parseString indentSyntax content)
+
+let loadMatter() = loadFromManifest (Assembly.GetExecutingAssembly()) "matter.mt"
 
 let staticMatter = loadMatter()
 
