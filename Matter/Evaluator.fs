@@ -14,6 +14,7 @@ let (|IsSelfEval|_|) expression =
     | String _ -> yes
     | Boolean _ -> yes
     | Keyword _ -> yes
+    | List [] -> yes
     | _ -> None
 
 let rec eval expression (frame:Frame) =
@@ -61,7 +62,7 @@ let rec eval expression (frame:Frame) =
                 eval (m args) frame
             | _ -> failwith (sprintf "expect lambda or macro, but seen %s" (print finalOperator))
 
-    | _ -> failwith "failed to evaluate expression"
+    | _ -> failwith (sprintf "failed to evaluate expression %s" (print expression))
 
 and evalArgs args frame =
     List.map (fun arg -> eval arg frame |> fst) args
@@ -176,7 +177,7 @@ and bind symbols (args:Expression list) (frame:Frame) =
 and evalDot args =
     match args with
     | [Symbol name] ->
-        match Map.tryFind name functionMap with
+        match Map.tryFind name runtimeRecords with
         | Some f -> f
         | None -> failwith (sprintf ". %s not implemented" name)
     | _ -> failwith ". expects one symbol"

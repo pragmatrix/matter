@@ -16,6 +16,38 @@ type Expression =
     | Lambda of (Expression list -> Expression)
     | Macro of (Expression list -> Expression)
 
+let rec equal l r = 
+    match (l, r) with
+    | Number l, Number r -> l = r
+    | String l, String r -> l = r
+    | Boolean l, Boolean r -> l = r
+    | Keyword l, Keyword r -> l = r
+    | Symbol l, Symbol r -> l = r
+    | List l, List r -> 
+        if ((List.length l) <> (List.length r)) then
+            false
+        else
+            let zipped = List.zip l r
+            List.forall (fun (l, r) -> equal l r) zipped
+    | _ -> false
+
+let rec print exp =
+    match exp with
+    | Number n -> n.ToString()
+    | String str -> "\"" + str + "\""
+    | Boolean b -> if b then "true" else "false"
+    | Keyword kw -> ":" + kw
+    | Symbol s -> s
+    | List lst ->
+        let all = List.map print lst
+        let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
+        "("+content+")"
+    | Lambda _ -> "fun "
+    | Macro _ -> "macro "
+
+let doify expressions = 
+    (List (Symbol "do" :: expressions))
+
 type Frame = 
     | Frame of Frame option * Map<string, Record>
 
@@ -42,19 +74,3 @@ and Record =
     | Variable of (Frame -> Expression)
     | Macro of (Frame -> Expression list -> Expression)
 
-let rec print exp =
-    match exp with
-    | Number n -> n.ToString()
-    | String str -> "\"" + str + "\""
-    | Boolean b -> if b then "true" else "false"
-    | Keyword kw -> ":" + kw
-    | Symbol s -> s
-    | List lst ->
-        let all = List.map print lst
-        let content = List.fold (fun str next -> if (str = "") then next else str + " " + next) "" all
-        "("+content+")"
-    | Lambda _ -> "fun "
-    | Expression.Macro _ -> "macro "
-
-let doify expressions = 
-    (List (Symbol "do" :: expressions))
