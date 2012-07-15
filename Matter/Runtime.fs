@@ -13,11 +13,20 @@ let rec equalFunction exp =
     | [l; r] -> equal l r |> Boolean
     | _ -> failwith "= expects two arguments"
 
+let rec consFunction exp =
+    match exp with
+    | [e] -> Lambda (fun exp -> consFunction (e::exp))
+    | [e; List r] -> (List.Cons (e, r)) |> List
+    | _ -> failwith "= expects two arguments"
+
 let runtimeFunctions = [
     "list", List
-    "first", List.head
-    "next", List.tail >> List
-    "empty?", List.isEmpty >> Boolean
+    "cons", consFunction
+
+    "first", fun [List l] -> List.head l
+    "next", fun [List l] -> List.tail l |> List
+    "empty?", fun [List l] -> List.isEmpty l |> Boolean
+
     "=", equalFunction
     ]
 

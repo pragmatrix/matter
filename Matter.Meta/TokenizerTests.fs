@@ -16,11 +16,11 @@ type TokenizerTests() =
     member this.testTokenizer() =
         this.test ("take-while (= 4) '(4 4 5 6)", "(4 4)")
 
-    member this.test(str, res) =
+    member this.test(str, expected) =
         let prefix = "use \"tokenizer.mt\"\n"
         let r = interpretString indentSyntax (prefix + str)
         let printed = print r
-        if (res <> printed) then
+        if (expected <> printed) then
             raise (Exception(printed))
 
 

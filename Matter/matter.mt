@@ -2,20 +2,16 @@
 ; runtime functions
 ;
 
-def list 
-	. list
+def use (. use)
 
-def first 
-	. first
+def list (. list)
+def cons (. cons)
 
-def next 
-	. next
+def first (. first)
+def next (. next)
+def empty? (. empty?)
 
-def = 
-	. =
-
-def use
-	. use
+def = (. =)
 
 ;
 ; pair

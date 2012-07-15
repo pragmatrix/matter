@@ -17,8 +17,8 @@ def take-while-core (pred out in)
 	if (empty? in)
 		pair out in
 		do
-			let c (head in)
+			let c (first in)
 			let rest (next in)
 			if (pred c)
-				take-while-core pred (conj c out) rest
+				take-while-core pred (cons c out) rest
 				pair out in

@@ -54,8 +54,8 @@ let rec eval expression (frame:Frame) =
             let finalOperator = eval operator frame |> fst
             match finalOperator with
             | Lambda f ->
-                let args = evalArgs args frame
-                f args, frame
+                let eArgs = evalArgs args frame
+                f eArgs, frame
             | Expression.Macro m -> 
                 // a macro itself not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
@@ -161,7 +161,7 @@ and evalIf parms frame =
 
 and evalQuote args =
     match args with
-    | p :: [] -> p
+    | [p] -> p
     | _ -> failwith "quote expects only one parameter"
 
 and bind symbols (args:Expression list) (frame:Frame) =
