@@ -1,6 +1,4 @@
-﻿. include "matter"
-
-; tokens:
+﻿; tokens:
 ; :number int
 ; :string string
 ; :boolean bool
@@ -14,17 +12,16 @@
 ; matter.mt candidate
 ; or lang.mt?
 
-def pair (a b) (list a b)
+def take-while (p in)
+	first
+		take-while-core p () in
 
-def takeWhileCore (p out in)
+def take-while-core (p out in)
 	if (empty? in)
 		pair out in
 		do
 			let c (head in)
 			let rest (tail in)
 			if (p c)
-				takeWhileCore f (conj c out) rest
+				take-while-core f (conj c out) rest
 				pair out in
-
-
-			

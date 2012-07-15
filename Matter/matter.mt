@@ -1,10 +1,40 @@
-﻿def list 
+﻿;
+; runtime functions
+;
+
+def list 
 	. list
 
-def head 
-	. head
+def first 
+	. first
 
-def tail
-	. tail
+def next 
+	. next
 
+def = 
+	. =
 
+def use
+	. use
+
+;
+; pair
+;
+
+def pair (f s)
+	list f s
+
+def second (l)
+	first (next l)
+
+;
+; logic
+;
+
+def not (v)
+	if v
+		false
+		true
+
+def not= (v)
+	not (= v)

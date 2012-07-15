@@ -5,12 +5,13 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{b3485b81-637c-40a3-9837-f30a7e608849}</ProjectGuid>
+    <ProjectGuid>{71638cc8-26c7-44ee-a734-8555706b4e51}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Matter</RootNamespace>
-    <AssemblyName>Matter</AssemblyName>
+    <RootNamespace>Matter.Meta</RootNamespace>
+    <AssemblyName>Matter.Meta</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>Matter</Name>
+    <Name>Matter.Meta</Name>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Matter.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Matter.Meta.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,26 +30,34 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Matter.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Matter.Meta.XML</DocumentationFile>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <ItemGroup>
-    <Compile Include="Tokenizer.fs" />
-    <Compile Include="Syntax.fs" />
-    <Compile Include="Expression.fs" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="Runtime.fs" />
-    <Compile Include="Evaluator.fs" />
-    <Compile Include="Interpreter.fs" />
-    <EmbeddedResource Include="matter.mt" />
+    <Compile Include="TokenizerTests.fs" />
+    <None Include="tokenizer.mt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Matter\Matter.fsproj">
+      <Name>Matter</Name>
+      <Project>{b3485b81-637c-40a3-9837-f30a7e608849}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
 	     Other similar extension points exist, see Microsoft.Common.targets.
