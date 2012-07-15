@@ -24,12 +24,13 @@ let rec eval expression (frame:Frame) =
         let r = Frame.lookup s frame
         match r with
         | Some (exp, fframe) ->
-            // function and variables are bound to their frame
+            // function, variables are bound to their frame
             let v = 
                 match exp with
                 | Variable f -> (f fframe)
                 | Function f -> Lambda (f fframe)
-                | Macro m -> Expression.Macro m
+                // todo: clarify frame for macros
+                | Macro m -> Expression.Macro (m fframe)
             v, frame
         | None -> failwith (sprintf "undefined symbol '%s'" s)
 
@@ -55,10 +56,9 @@ let rec eval expression (frame:Frame) =
                 let args = evalArgs args frame
                 f args, frame
             | Expression.Macro m -> 
-                // a macro is not allowed to pollute our current environment, but
+                // a macro itself not allowed to pollute our current environment, but
                 // it can have an effect on it by returning defs or other defmacros.
-                let macroExp, envMacro = evalMacro m args frame
-                eval macroExp frame
+                eval (m args) frame
             | _ -> failwith (sprintf "expect lambda or macro, but seen %s" (print finalOperator))
 
     | _ -> failwith "failed to evaluate expression"
@@ -123,7 +123,12 @@ and evalDo expressions frame =
 and evalDefmacro parms frame =
 
     let def symbol parms body = 
-        let record = Macro { Parms = parms; Body = body }
+
+        let evalMacro frame args =
+            let localEnv = bind parms args frame
+            eval body localEnv |> fst
+
+        let record = Macro evalMacro
         ok, Frame.add frame (symbol, record)
 
     match parms with
@@ -131,10 +136,6 @@ and evalDefmacro parms frame =
     | [Symbol symbol; List parms; body] -> def symbol parms body
 
     | _ -> failwith "defmacro: invalid arguments"
-
-and evalMacro m args frame =
-    let localEnv = bind m.Parms args frame
-    eval m.Body localEnv
 
 and evalIf parms frame =
     

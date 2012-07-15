@@ -1,6 +1,5 @@
 ﻿module Expression
 
-
 type Expression =
     // atoms:
 
@@ -15,17 +14,9 @@ type Expression =
     | List of Expression list
 
     | Lambda of (Expression list -> Expression)
-    | Macro of Macro
+    | Macro of (Expression list -> Expression)
 
-and Macro =    
-    { Parms: Expression list; Body: Expression }
-
-and Record =
-    | Function of (Frame -> Expression list -> Expression)
-    | Variable of (Frame -> Expression)
-    | Macro of Macro
-
-and Frame = 
+type Frame = 
     | Frame of Frame option * Map<string, Record>
 
     static member empty = Frame(None, Map.empty)
@@ -45,6 +36,11 @@ and Frame =
             match parent with
             | Some p -> Frame.lookup str p
             | None -> None
+
+and Record =
+    | Function of (Frame -> Expression list -> Expression)
+    | Variable of (Frame -> Expression)
+    | Macro of (Frame -> Expression list -> Expression)
 
 let rec print exp =
     match exp with
