@@ -15,8 +15,9 @@ let rec equalFunction exp =
 
 let runtimeFunctions = [
     "list", List
-    "first", fun (e::_) -> e
-    "next", fun (_::t) -> List t
+    "first", List.head
+    "next", List.tail >> List
+    "empty?", List.isEmpty >> Boolean
     "=", equalFunction
     ]
 
